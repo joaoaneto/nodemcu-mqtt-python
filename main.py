@@ -28,7 +28,8 @@ CONFIG = {
 RETURNS = {
 	'sensor': 'DHT11',
 	'temperature': None,
-	'humidity' : None
+	'humidity' : None,
+	'air_mq2': None
 }
 
 client = None
@@ -56,8 +57,9 @@ def save_config():
 def main():
 	import ujson as json
 	sensor_pin = CONFIG['sensor_pin']
-	#self, client_id, server, port=0, user=None, password=None, keepalive=0,ssl=False, ssl_params={})
+	adc = machine.ADC(0)
 	client = MQTTClient(CONFIG['client_id'], CONFIG['broker'], CONFIG['port'], CONFIG['username'], CONFIG['password'])
+	#self, client_id, server, port=0, user=None, password=None, keepalive=0,ssl=False, ssl_params={})
 	client.connect()
 	print("Connected to {}".format(CONFIG['broker']))
 	while True:
@@ -65,8 +67,9 @@ def main():
 		data.measure()
 		RETURNS['temperature'] = data.temperature()
 		RETURNS['humidity'] = data.humidity()
+		RETURNS['air_mq2'] = adc.read()
 		client.publish(CONFIG['topic'], json.dumps(RETURNS))
-		print('Sensor state: {}'.format(data.temperature()))
+		print('Temperature: {} - Humidity: {} - Gas: {}'.format(data.temperature(), data.humidity(),adc.read()))
 		time.sleep(5)
 
 if __name__ == '__main__':
